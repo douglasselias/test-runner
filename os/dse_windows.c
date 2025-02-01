@@ -76,7 +76,7 @@ void dse_start_thread(dse_thread_id id) {
 }
 
 void dse_wait_all_threads(dse_thread_id* thread_array, dse_u64 total_threads) {
-  WaitForMultipleObjects((dse_u64)total_threads, thread_array, true, INFINITE);
+  WaitForMultipleObjects((DWORD)total_threads, thread_array, true, INFINITE);
 }
 
 void dse_atomic_increment(dse_s64* n) {
@@ -122,7 +122,7 @@ void dse_list_files_from_dir(const char* path) {
         strcat(dse_list_of_filenames[dse_filename_insert_index], ffd.cFileName);
 
         /// @note: Convert backwards slash to forward slash
-        int i = 0;
+        dse_u64 i = 0;
         size_t filename_length = strlen(dse_list_of_filenames[dse_filename_insert_index]);
         while(i < filename_length) {
           if(dse_list_of_filenames[dse_filename_insert_index][i] == '\\') {

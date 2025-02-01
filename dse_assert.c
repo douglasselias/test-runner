@@ -79,24 +79,49 @@ char* dse_query = "";
     } \
   } \
 
-/// @todo: From this line to the end, think of better names.
 typedef void (*dse_test_function)();
 #define dse_max_test_functions 10000
 dse_test_function dse_test_functions[dse_max_test_functions] = {0};
 dse_u64 dse_functions_insert_index = 0;
 
-dse_u64 dse_tests_per_thread = 1;
-dse_u64 dse_remaining_tests = 0;
+dse_u64 dse_tests_per_thread  = 1;
+dse_u64 dse_remaining_tests   = 0;
+dse_u64 dse_available_threads = 1;
 
 typedef struct {
   dse_u64 start_index;
   dse_u64 end_index;
 } DSEThreadArgs;
 
-dse_u64 dse_range_tests_proc(void* thread_args) {
+void dse_range_tests_proc(void* thread_args) {
   DSEThreadArgs args = *(DSEThreadArgs*)thread_args;
   for(dse_u64 i = args.start_index; i < args.end_index; i++) {
 		dse_test_functions[i]();
 	}
-  return 0;
+}
+
+void dse_init_threads() {
+  dse_available_threads = dse_count_threads() - 1;
+
+  if(dse_functions_insert_index >= dse_available_threads) {
+    dse_tests_per_thread = dse_functions_insert_index / dse_available_threads;
+    dse_remaining_tests  = dse_functions_insert_index % dse_available_threads;
+  }
+
+  dse_thread_id* threads_array = calloc(sizeof(dse_thread_id), dse_available_threads);
+  /// @todo: Maybe use two for loops, one to create the threads and the other to run the threads.
+  for(dse_u64 i = 0; i < dse_available_threads; i++) {
+    DSEThreadArgs* args = calloc(sizeof(DSEThreadArgs), 1);
+    args->start_index = (i + 0) * dse_tests_per_thread;
+    args->end_index   = (i + 1) * dse_tests_per_thread;
+
+    /// @todo: Do I really need another calloc?
+    DSEThreadProcWrapperArgs* wrapper_args = calloc(sizeof(DSEThreadProcWrapperArgs), 1);
+    wrapper_args->thread_proc = dse_range_tests_proc;
+    wrapper_args->args = (void*)args;
+    threads_array[i] = dse_create_thread(wrapper_args);
+    dse_start_thread(threads_array[i]);
+  }
+
+  dse_wait_all_threads(threads_array, dse_available_threads);
 }
