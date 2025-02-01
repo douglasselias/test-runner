@@ -10,10 +10,12 @@
 typedef int64_t  dse_s64;
 typedef uint64_t dse_u64;
 
+/// @todo: Change to the string.h function and remove this.
 void dse_copy_string(const char* source, char* destination) {
   strcpy(destination, source);
 }
 
+/// @note: This is not platform dependent but I don't feel like moving this to another file :)
 bool dse_has_substring(const char* haystack, const char* needle) {
   dse_u64 haystack_length = strlen(haystack);
   dse_u64 needle_length   = strlen(needle);
@@ -55,18 +57,18 @@ typedef void(*dse_thread_proc)(void* args);
 typedef struct {
   dse_thread_proc thread_proc;
   void* args;
-} ThreadProcWrapperArgs;
+} DSEThreadProcWrapperArgs;
 
-DWORD thread_proc_wrapper(void* args) {
-  ThreadProcWrapperArgs wrapper_args = *(ThreadProcWrapperArgs*)args;
+DWORD dse_thread_proc_wrapper(void* args) {
+  DSEThreadProcWrapperArgs wrapper_args = *(DSEThreadProcWrapperArgs*)args;
   wrapper_args.thread_proc(wrapper_args.args);
   return 0;
 }
 
-dse_thread_id dse_create_thread(ThreadProcWrapperArgs* wrapper_args) {
+dse_thread_id dse_create_thread(DSEThreadProcWrapperArgs* wrapper_args) {
   LPSECURITY_ATTRIBUTES default_security_attr = NULL;
   dse_u64 default_stack_size = 0;
-  return CreateThread(default_security_attr, default_stack_size, thread_proc_wrapper, wrapper_args, CREATE_SUSPENDED, NULL);
+  return CreateThread(default_security_attr, default_stack_size, dse_thread_proc_wrapper, wrapper_args, CREATE_SUSPENDED, NULL);
 }
 
 void dse_start_thread(dse_thread_id id) {
@@ -108,6 +110,7 @@ void dse_list_files_from_dir(const char* path) {
         dse_list_files_from_dir(dir_buffer);
       }
     } else {
+      /// @todo: Maybe I can use this in the read file...
       // LARGE_INTEGER filesize;
       // filesize.LowPart = ffd.nFileSizeLow;
       // filesize.HighPart = ffd.nFileSizeHigh;
