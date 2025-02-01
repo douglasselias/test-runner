@@ -1,6 +1,5 @@
 #include "dse_assert.c"
 
-/// @todo: Should I keep this function?
 bool strings_are_equal(char* a, char* b) {
   return strcmp(a, b) == 0;
 }
@@ -68,9 +67,9 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   || strings_are_equal("-help", cli_arg)
   || strings_are_equal("--help", cli_arg)) {
     puts("This software is in early alpha!");
-    puts("\nYou can provide a query to execute all the tests that contains the query.");
-    puts("\t> test_runner.exe my_query");
-    puts("Running without a query will execute all tests.");
+    // puts("\nYou can provide a query to execute all the tests that contains the query.");
+    // puts("\t> test_runner.exe my_query");
+    // puts("Running without a query will execute all tests.");
     puts("Tests and Suites names must be a valid C identifier.");
     puts("Give a star! https://github.com/douglasselias/test-runner");
     return 0;
@@ -104,6 +103,7 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   }
 
   fprintf(generated_file, "\nint main() {");
+  /// @todo: Copy the query to the generated file.
   // fprintf(generated_file, "\n\tdse_copy_string(\"%s\", dse_test_query);\n", test_query);
 
   for(dse_u64 i = 0; i < test_names_insert_index; i++) {
@@ -112,11 +112,11 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
     }
   }
 
-  fprintf(generated_file, "\n\tdse_init_results();");
-  fprintf(generated_file, "\n\n\tdse_init_threads();\n");
-  fprintf(generated_file, "\n\n\tdse_print_results();");
+  fprintf(generated_file, "\n\n\tdse_init_results();");
+  fprintf(generated_file, "\n\tdse_init_threads();");
+  fprintf(generated_file, "\n\tdse_print_results();");
 
-  fprintf(generated_file, "\n\treturn 0;\n}");
+  fprintf(generated_file, "\n\n\treturn 0;\n}");
 
   fclose(generated_file);
   puts("::: Finished generating file :::");

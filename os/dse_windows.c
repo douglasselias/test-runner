@@ -10,11 +10,6 @@
 typedef int64_t  dse_s64;
 typedef uint64_t dse_u64;
 
-/// @todo: Change to the string.h function and remove this.
-void dse_copy_string(const char* source, char* destination) {
-  strcpy(destination, source);
-}
-
 /// @note: This is not platform dependent but I don't feel like moving this to another file :)
 bool dse_has_substring(const char* haystack, const char* needle) {
   dse_u64 haystack_length = strlen(haystack);
@@ -89,7 +84,7 @@ dse_u64 dse_filename_insert_index = 0;
 
 void dse_list_files_from_dir(const char* path) {
   char dir_name[MAX_PATH] = {0};
-  dse_copy_string(path, dir_name);
+  strcpy(dir_name, path);
   strcat(dir_name, "\\*");
 
   WIN32_FIND_DATA ffd;
@@ -104,7 +99,7 @@ void dse_list_files_from_dir(const char* path) {
     if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
       if(ffd.cFileName[0] != '.') {
         char dir_buffer[MAX_PATH] = {0};
-        dse_copy_string(path, dir_buffer);
+        strcpy(dir_buffer, path);
         strcat(dir_buffer, "\\");
         strcat(dir_buffer, ffd.cFileName);
         dse_list_files_from_dir(dir_buffer);

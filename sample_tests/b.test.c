@@ -94,6 +94,7 @@ DSE_TEST(multiply_test_18,
 DSE_TEST(multiply_test_19,
   int result = multiply(4, 3);
   DSE_ASSERT(result == 7);
+  DSE_ASSERT(result == 16);
 );
 
 DSE_TEST(multiply_test_20,
