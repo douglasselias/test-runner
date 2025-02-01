@@ -50,8 +50,8 @@ void dse_print_results() {
   printf("\033[93mSKIPPED\033[0m\tLine: %s:%d\n", __FILE__, __LINE__); \
 
 /// @todo: Think a better way to filter the tests and suites. Specially the tests inside the suites.
-// char dse_query[50] = {0};
-char* dse_query = "";
+char dse_query[50] = {0};
+// char* dse_query = "";
 
 /// @todo: I could filter the tests when generating the file, instead of having the if statement on the macro.
 #define DSE_SUITE(name, code) \
@@ -103,10 +103,21 @@ void dse_range_tests_proc(void* thread_args) {
 void dse_init_threads() {
   dse_available_threads = dse_count_threads() - 1;
 
+  /// @todo: This logic needs more testing!
+  /// The remaining tests doesn't go anywhere!!!
   if(dse_functions_insert_index >= dse_available_threads) {
     dse_tests_per_thread = dse_functions_insert_index / dse_available_threads;
     dse_remaining_tests  = dse_functions_insert_index % dse_available_threads;
+  } else {
+    dse_available_threads = 1;
+    dse_tests_per_thread = dse_functions_insert_index;
   }
+
+  puts("");
+  printf("Running %lld tests on %lld thread(s)\n", dse_functions_insert_index, dse_available_threads);
+  printf("Tests per thread:  %lld\n", dse_tests_per_thread);
+  printf("Remaining tests:   %lld\n", dse_remaining_tests);
+  puts("");
 
   dse_thread_id* threads_array = calloc(sizeof(dse_thread_id), dse_available_threads);
   /// @todo: Maybe use two for loops, one to create the threads and the other to run the threads.

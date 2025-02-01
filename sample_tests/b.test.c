@@ -98,18 +98,30 @@ DSE_TEST(multiply_test_19,
 
 DSE_TEST(multiply_test_20,
   int result = multiply(4, 3);
-  char* a = NULL;
-  char b = *a;
   DSE_ASSERT(result == 7);
 );
 
 DSE_TEST(multiply_test_21,
-  int result = multiply(1, 7);
+  int result = multiply(2, 7);
   DSE_ASSERT(result == 7);
 );
 
 DSE_TEST(multiply_test_22,
   int result = multiply(4, 3);
   result = 10;
-  DSE_SKIP(DSE_ASSERT(result == 7));
+  DSE_ASSERT(result == 7);
 );
+
+DSE_TEST(multiply_test_23,
+  int result = multiply(1, 7);
+  result = 10;
+  DSE_ASSERT(result == 7);
+);
+
+/// @todo: Cannot do skip test, only assert
+// DSE_SKIP(DSE_TEST(multiply_test_20,
+//   int result = multiply(4, 3);
+//   char* a = NULL;
+//   char b = *a;
+//   DSE_ASSERT(result == 7);
+// ));

@@ -8,6 +8,6 @@
 //   );
 // );
 
-DSE_TEST(another_test,
-  DSE_ASSERT(*dse_total_tests == 5);
-);
+// DSE_TEST(another_test,
+//   DSE_ASSERT(*dse_total_tests == 5);
+// );
