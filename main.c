@@ -1,6 +1,6 @@
 #include "os/dse_windows.c"
 
-dse_atomic_s64* counter;
+dse_s64* counter;
 
 void thread_proc(void* args) {
   int id = *(int*)args;
@@ -12,7 +12,7 @@ void thread_proc(void* args) {
 int main() {
   puts("Hello Sailor");
 
-  counter = calloc(sizeof(dse_atomic_s64), 1);
+  counter = calloc(sizeof(dse_s64), 1);
   *counter = 0;
 
   #define total_threads 9

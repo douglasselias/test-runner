@@ -7,6 +7,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include<windows.h>
 
+typedef int64_t  dse_s64;
 typedef uint64_t dse_u64;
 
 void dse_copy_string(const char* source, char* destination) {
@@ -73,12 +74,10 @@ void dse_start_thread(dse_thread_id id) {
 }
 
 void dse_wait_all_threads(dse_thread_id* thread_array, dse_u64 total_threads) {
-  WaitForMultipleObjects((DWORD)total_threads, thread_array, true, INFINITE);
+  WaitForMultipleObjects((dse_u64)total_threads, thread_array, true, INFINITE);
 }
 
-#define dse_atomic_s64 LONG64
-
-void dse_atomic_increment(dse_atomic_s64* n) {
+void dse_atomic_increment(dse_s64* n) {
   InterlockedIncrement64(n);
 }
 
