@@ -1,5 +1,10 @@
 #include "dse_assert.c"
 
+#define RELEASE 1
+#ifdef RELEASE
+#include "build/lib_embed.c"
+#endif
+
 bool strings_are_equal(char* a, char* b) {
   return strcmp(a, b) == 0;
 }
@@ -18,7 +23,7 @@ char* read_entire_file(const char* path) {
   // printf("SIZE: %zd\n", size);
   fseek(file, 0, SEEK_SET);
 
-  char* string = malloc(size + 1);
+  char* string = calloc(sizeof(char), size + 1);
   fread(string, size, 1, file);
   fclose(file);
 
@@ -83,18 +88,41 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts(separator);
   puts("::: Searching test files :::");
   /// @todo: Maybe a better API should be to return the list of directories.
-  dse_list_files_from_dir("..");
+  #ifdef RELEASE
+    dse_list_files_from_dir(".");
+    /// @note: Comment the line below to test in release mode.
+    // dse_list_files_from_dir("..");
+  #else
+    dse_list_files_from_dir("..");
+  #endif
   puts("::: Finished searching :::");
   puts(separator);
 
   puts("::: Generating file :::");
-  FILE* generated_file = fopen("generated.c", "w");
+  dse_execute_shell_cmd("mkdir build");
+  FILE* generated_file = fopen("build/generated.c", "w");
 
-  fprintf(generated_file, "#include \"../dse_assert.c\"\n");
+  #ifdef RELEASE
+    dse_u64 windows_file_size = sizeof(dse_windows_file) / sizeof(dse_windows_file[0]);
+    dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
+    for(dse_u64 i = 0; i < windows_file_size; i++) {
+      fprintf(generated_file, "%c", dse_windows_file[i] == '\0' ? '\n' : (char)dse_windows_file[i]);
+    }
+    for(dse_u64 i = 0; i < assert_file_size; i++) {
+      fprintf(generated_file, "%c", dse_assert_file[i] == '\0' ? '\n' : (char)dse_assert_file[i]);
+    }
+  #else
+    fprintf(generated_file, "#include \"../dse_assert.c\"\n");
+  #endif
+
 
   for(dse_u64 i = 0; i < dse_filename_insert_index; i++) {
     if(dse_list_of_filenames[i]) {
+      #ifdef RELEASE
+      fprintf(generated_file, "#include \"../%s\"\n", dse_list_of_filenames[i]);
+      #else
       fprintf(generated_file, "#include \"%s\"\n", dse_list_of_filenames[i]);
+      #endif
       char* file_text = read_entire_file(dse_list_of_filenames[i]);
       extract_name_of_test(file_text);
       /// @todo: A better approach is to allocate once and reuse.
@@ -124,11 +152,11 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   puts("::: Compiling :::");
   /// @todo: Give an option to the user specify the compiler command.
-  dse_execute_shell_cmd("cl /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 generated.c");
+  dse_execute_shell_cmd("cl /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
   puts("::: Finished compiling :::");
   puts(separator);
 
   puts("::: Running tests :::");
-  dse_execute_shell_cmd("generated.exe");
+  dse_execute_shell_cmd("build\\generated.exe");
   puts("::: Finished running tests :::");
 }
