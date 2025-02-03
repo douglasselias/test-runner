@@ -68,6 +68,7 @@ File read_entire_file(const char* path) {
 
   /// @todo: Not a robust way to remove the os/dse_windows.c include for embedding the source file. A better wayt is to remove any include that references a source file in this project, since it will be copy pasted on the final file to embed on the test runner binary.
   char* line = strtok(string, "\n");
+  /// @todo: Change to support linux systems.
   if(dse_has_substring(line, "dse_windows")) {
     dse_u64 line_size = strlen(line);
     for(dse_u64 i = 0; i < line_size; i++) {
@@ -91,6 +92,7 @@ void embed_file(FILE* file_descriptor, char* variable_name, File file) {
 int main() {
   FILE* __embed = fopen("lib_embed.c", "w");
 
+  /// @todo: Change to support linux systems.
   File dse_windows_file = read_entire_file("../os/dse_windows.c");
   File dse_assert_file  = read_entire_file("../dse_assert.c");
 

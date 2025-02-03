@@ -99,10 +99,12 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts(separator);
 
   puts("::: Generating file :::");
+  /// @todo: Change to support linux systems.
   dse_execute_shell_cmd("mkdir build");
   FILE* generated_file = fopen("build/generated.c", "w");
 
   #ifdef RELEASE
+    /// @todo: Change to support linux systems. In this case, is only the name.
     dse_u64 windows_file_size = sizeof(dse_windows_file) / sizeof(dse_windows_file[0]);
     dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
     for(dse_u64 i = 0; i < windows_file_size; i++) {
@@ -152,11 +154,13 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   puts("::: Compiling :::");
   /// @todo: Give an option to the user specify the compiler command.
+  /// @todo: Change to support linux systems.
   dse_execute_shell_cmd("cl /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
   puts("::: Finished compiling :::");
   puts(separator);
 
   puts("::: Running tests :::");
+  /// @todo: Change to support linux systems.
   dse_execute_shell_cmd("build\\generated.exe");
   puts("::: Finished running tests :::");
 }
