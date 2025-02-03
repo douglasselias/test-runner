@@ -65,12 +65,11 @@ char dse_query[50] = {0};
   } \
 
 #define DSE_SUITE_TEST(name, code) \
-  for(;;) { \
+  { \
     if(dse_has_substring(#name, dse_query)) { \
       printf("\033[95m> %s\033[0m\n", #name); \
       code \
     } \
-    break; \
   } \
 
 #define DSE_TEST(name, code) \
@@ -105,8 +104,6 @@ void dse_range_tests_proc(void* thread_args) {
 void dse_init_threads() {
   dse_available_threads = dse_count_threads() - 1;
 
-  /// @todo: This logic needs more testing!
-  /// The remaining tests doesn't go anywhere!!!
   if(dse_functions_insert_index >= dse_available_threads) {
     dse_tests_per_thread = dse_functions_insert_index / dse_available_threads;
     dse_remaining_tests  = dse_functions_insert_index % dse_available_threads;

@@ -90,7 +90,7 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   /// @todo: Maybe a better API should be to return the list of directories.
   #ifdef RELEASE
     dse_list_files_from_dir(".");
-    /// @note: Comment the line below to test in release mode.
+    /// @note: Uncomment the line below to test in release mode.
     // dse_list_files_from_dir("..");
   #else
     dse_list_files_from_dir("..");
