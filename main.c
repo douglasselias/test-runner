@@ -92,9 +92,9 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts("::: Searching test files :::");
   /// @todo: Maybe a better API should be to return the list of directories.
   #ifdef RELEASE
-    dse_list_files_from_dir(".");
+    // dse_list_files_from_dir(".");
     /// @note: Uncomment the line below to test in release mode.
-    // dse_list_files_from_dir("..");
+    dse_list_files_from_dir("..");
   #else
     dse_list_files_from_dir("..");
   #endif
@@ -166,5 +166,4 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts("::: Running tests :::");
   /// @todo: Change to support linux systems.
   system("build\\generated.exe");
-  puts("::: Finished running tests :::");
 }

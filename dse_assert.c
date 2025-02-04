@@ -1,41 +1,53 @@
 #include "os/dse_windows.c"
 /// @todo: Change to support linux systems.
 
-/// @todo: Should I rename to assertions?
-dse_s64* dse_total_tests;
-dse_s64* dse_total_tests_failed;
+dse_s64* dse_total_assertions_ran;
+dse_s64* dse_total_assertions_failed;
 
 void dse_init_results() {
-  dse_total_tests         = calloc(sizeof(dse_u64), 1);
-  dse_total_tests_failed  = calloc(sizeof(dse_u64), 1);
+  dse_total_assertions_ran     = calloc(sizeof(dse_u64), 1);
+  dse_total_assertions_failed  = calloc(sizeof(dse_u64), 1);
 
-  *dse_total_tests         = 0;
-  *dse_total_tests_failed  = 0;
+  *dse_total_assertions_ran    = 0;
+  *dse_total_assertions_failed = 0;
 }
 
 void dse_print_results() {
-  /// @todo: Should I rename 'total tests' to assertions?
-  dse_u64 total_tests_passed = *dse_total_tests - *dse_total_tests_failed;
+  dse_u64 total_assertions_passed = *dse_total_assertions_ran - *dse_total_assertions_failed;
   printf(
-    "\n"
-    "Total tests:\t%lld\n"
-    "Total failed:\t%lld\n"
-    "Total passed:\t%lld\n"
+    "\n\n"
+    "\033[35mAssertions:\t%lld\033[0m\n"
+    "\033[31mFailed:\t\t%lld\033[0m\n"
+    "\033[36mPassed:\t\t%lld\033[0m\n"
     ,
-    *dse_total_tests,
-    *dse_total_tests_failed,
-    total_tests_passed
+    *dse_total_assertions_ran,
+    *dse_total_assertions_failed,
+    total_assertions_passed
   );
 }
 
+/// @note: This is to remove the unnecessary full path of the assertion report.
+dse_u64 __dse_internal_reverse_index(char* string) {
+  dse_u64 length = strlen(string);
+  bool found_first_dot = false;
+  for(dse_u64 i = length - 1; i > 0; i--) {
+    if(found_first_dot && string[i] == '.') {
+      return i+1;
+    } else found_first_dot = false;
+    if(string[i] == '.') {
+      found_first_dot = true;
+    }
+  }
+
+  return 0;
+}
+
 #define DSE_ASSERT(expression, ...) \
-  dse_atomic_increment(dse_total_tests); \
+  dse_atomic_increment(dse_total_assertions_ran); \
   if(!(expression)) { \
-    dse_atomic_increment(dse_total_tests_failed); \
-    printf("\033[31mFAILED\033[0m\t"); \
-    printf("Line: %s:%d  ", __FILE__, __LINE__); \
+    dse_atomic_increment(dse_total_assertions_failed); \
+    printf("\n\033[31mFAILED\033[0m\t%s:%d ", __FILE__ + __dse_internal_reverse_index(__FILE__), __LINE__); \
     printf("" __VA_ARGS__); \
-    puts(""); \
   } \
 
 typedef void (*dse_test_function)();
@@ -70,11 +82,11 @@ void dse_run_threads() {
     dse_tests_per_thread = dse_functions_insert_index;
   }
 
-  puts("");
-  printf("Running %lld test(s) on %lld thread(s)\n", dse_functions_insert_index, dse_available_threads);
-  printf("Tests per thread:  %lld\n", dse_tests_per_thread);
-  printf("Remaining tests:   %lld\n", dse_remaining_tests);
-  puts("");
+  // puts("");
+  // printf("Running %lld test function(s) on %lld thread(s)\n", dse_functions_insert_index, dse_available_threads);
+  // printf("Tests per thread:  %lld\n", dse_tests_per_thread);
+  // printf("Remaining tests:   %lld\n", dse_remaining_tests);
+  // puts("");
 
   dse_thread_id* threads_array = calloc(sizeof(dse_thread_id), dse_available_threads);
   /// @todo: Maybe use two for loops, one to create the threads and the other to run the threads.

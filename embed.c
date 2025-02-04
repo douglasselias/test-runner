@@ -92,5 +92,5 @@ int main() {
   embed_file(generated_embed_file, "dse_windows_file", dse_windows_file);
   embed_file(generated_embed_file, "dse_assert_file", dse_assert_file);
   fclose(generated_embed_file);
-  puts("Finished embedding");
+  puts("::: Finished embedding :::");
 }
