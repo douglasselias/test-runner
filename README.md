@@ -25,6 +25,26 @@ void your_test() {
   // You can also provide a format string.
   DSE_ASSERT(result == 7, "Expected 7, but got %d", result);
 }
+
+// But what if I want a test suite?
+// Just do this...
+void your_suite() {
+  // setup code
+  FILE* file = fopen("a_file.txt");
+
+  {
+    bool result = file_has_newlines(file);
+    DSE_ASSERT(result);
+  }
+
+  {
+    bool result = file_has_execute_permissions(file);
+    DSE_ASSERT(result);
+  }
+
+  // teardown code
+  fclose(file);
+}
 ```
 
 Then execute the runner on your folder project. It will scan the entire directory tree to find tests.
