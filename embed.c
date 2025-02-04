@@ -8,14 +8,6 @@
 typedef int64_t  dse_s64;
 typedef uint64_t dse_u64;
 
-/// @note: CopyPasta from main.c
-dse_s64 char_index(const char* haystack, char needle) {
-  for(dse_u64 i = 0; i < strlen(haystack); i++) {
-    if(haystack[i] == needle) return i;
-  }
-  return -1;
-}
-
 /// @note: CopyPasta from dse_windows.c
 bool dse_has_substring(const char* haystack, const char* needle) {
   dse_u64 haystack_length = strlen(haystack);
@@ -90,14 +82,15 @@ void embed_file(FILE* file_descriptor, char* variable_name, File file) {
 }
 
 int main() {
-  FILE* __embed = fopen("lib_embed.c", "w");
+  FILE* generated_embed_file = fopen("lib_embed.c", "w");
 
   /// @todo: Change to support linux systems.
   File dse_windows_file = read_entire_file("../os/dse_windows.c");
   File dse_assert_file  = read_entire_file("../dse_assert.c");
 
-  embed_file(__embed, "dse_windows_file", dse_windows_file);
-  embed_file(__embed, "dse_assert_file", dse_assert_file);
-  fclose(__embed);
+  /// @todo: If the variable name is changed, then it must change on main.c
+  embed_file(generated_embed_file, "dse_windows_file", dse_windows_file);
+  embed_file(generated_embed_file, "dse_assert_file", dse_assert_file);
+  fclose(generated_embed_file);
   puts("Finished embedding");
 }

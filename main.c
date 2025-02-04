@@ -48,16 +48,19 @@ void extract_name_of_test(char* text) {
 
   while(line != NULL) {
     /// @todo: Not a robust way to detect commented lines.
+    /// Does not catch multiline comments!
     bool is_not_a_commented_line = !dse_has_substring(line, "//");
-    bool is_a_test = dse_has_substring(line, "DSE_SUITE(")
-                  || dse_has_substring(line, "DSE_TEST(");
+    // bool is_not_a_skip_assertion = !dse_has_substring(line, "DSE_SKIP(");
+    bool is_a_test = dse_has_substring(line, "void")
+                  && dse_has_substring(line, "()")
+                  && dse_has_substring(line, "{");
 
     if(is_not_a_commented_line && is_a_test) {
-      dse_u64 parenthesis_index = char_index(line, '(') + 1;
-      dse_u64 coma_index = char_index(line, ',');
+      dse_u64 test_name_start_index = char_index(line, 'd') + 2;
+      dse_u64 left_parenthesis_index = char_index(line, '(');
 
       test_names[test_names_insert_index] = calloc(sizeof(char), test_name_length);
-      memcpy(test_names[test_names_insert_index], line + parenthesis_index, coma_index - parenthesis_index);
+      memcpy(test_names[test_names_insert_index], line + test_name_start_index, left_parenthesis_index - test_name_start_index);
       test_names_insert_index++;
     }
 
@@ -100,7 +103,7 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   puts("::: Generating file :::");
   /// @todo: Change to support linux systems.
-  dse_execute_shell_cmd("mkdir build");
+  system("mkdir build");
   FILE* generated_file = fopen("build/generated.c", "w");
 
   #ifdef RELEASE
@@ -133,17 +136,15 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   }
 
   fprintf(generated_file, "\nint main() {");
-  /// @todo: Copy the query to the generated file.
-  // fprintf(generated_file, "\n\tdse_copy_string(\"%s\", dse_test_query);\n", test_query);
 
   for(dse_u64 i = 0; i < test_names_insert_index; i++) {
     if(test_names[i]) {
-      fprintf(generated_file, "\n\tdse_test_functions[dse_functions_insert_index++] = dse_%s;", test_names[i]);
+      fprintf(generated_file, "\n\tdse_test_functions[dse_functions_insert_index++] = %s;", test_names[i]);
     }
   }
 
   fprintf(generated_file, "\n\n\tdse_init_results();");
-  fprintf(generated_file, "\n\tdse_init_threads();");
+  fprintf(generated_file, "\n\tdse_run_threads();");
   fprintf(generated_file, "\n\tdse_print_results();");
 
   fprintf(generated_file, "\n\n\treturn 0;\n}");
@@ -155,12 +156,15 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts("::: Compiling :::");
   /// @todo: Give an option to the user specify the compiler command.
   /// @todo: Change to support linux systems.
-  dse_execute_shell_cmd("cl /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
+  dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
+  // dse_s64 exit_code = system("cl /P /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
   puts("::: Finished compiling :::");
   puts(separator);
 
+  if(exit_code != 0) return -1;
+
   puts("::: Running tests :::");
   /// @todo: Change to support linux systems.
-  dse_execute_shell_cmd("build\\generated.exe");
+  system("build\\generated.exe");
   puts("::: Finished running tests :::");
 }

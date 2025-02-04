@@ -3,82 +3,39 @@
 
 /// @todo: Should I rename to assertions?
 dse_s64* dse_total_tests;
-dse_s64* dse_total_tests_skipped;
 dse_s64* dse_total_tests_failed;
 
 void dse_init_results() {
   dse_total_tests         = calloc(sizeof(dse_u64), 1);
-  dse_total_tests_skipped = calloc(sizeof(dse_u64), 1);
   dse_total_tests_failed  = calloc(sizeof(dse_u64), 1);
 
   *dse_total_tests         = 0;
-  *dse_total_tests_skipped = 0;
   *dse_total_tests_failed  = 0;
 }
 
 void dse_print_results() {
   /// @todo: Should I rename 'total tests' to assertions?
-  dse_u64 total = *dse_total_tests - *dse_total_tests_skipped - *dse_total_tests_failed;
+  dse_u64 total_tests_passed = *dse_total_tests - *dse_total_tests_failed;
   printf(
     "\n"
     "Total tests:\t%lld\n"
-    "Total skipped:\t%lld\n"
     "Total failed:\t%lld\n"
     "Total passed:\t%lld\n"
     ,
     *dse_total_tests,
-    *dse_total_tests_skipped,
     *dse_total_tests_failed,
-    total
-    );
+    total_tests_passed
+  );
 }
 
-/// @todo: Can I expand the macros before compiling? The assert is not returning a useful line number.
 #define DSE_ASSERT(expression, ...) \
   dse_atomic_increment(dse_total_tests); \
-  if(expression) { \
-    printf("\033[32mPASSED\033[0m\t"); \
-    printf("Line: %s:%d\n", __FILE__, __LINE__); \
-  } else { \
+  if(!(expression)) { \
     dse_atomic_increment(dse_total_tests_failed); \
     printf("\033[31mFAILED\033[0m\t"); \
     printf("Line: %s:%d  ", __FILE__, __LINE__); \
     printf("" __VA_ARGS__); \
     puts(""); \
-  } \
-
-#define DSE_SKIP(expression_not_used) \
-  dse_atomic_increment(dse_total_tests_skipped); \
-  dse_atomic_increment(dse_total_tests); \
-  printf("\033[93mSKIPPED\033[0m\tLine: %s:%d\n", __FILE__, __LINE__); \
-
-/// @todo: Think a better way to filter the tests and suites. Specially the tests inside the suites.
-char dse_query[50] = {0};
-// char* dse_query = "";
-
-/// @todo: I could filter the tests when generating the file, instead of having the if statement on the macro.
-#define DSE_SUITE(name, code) \
-  void dse_##name() { \
-    if(dse_has_substring(#name, dse_query)) { \
-      printf("\033[95mSUITE %s\033[0m\n", #name); \
-      code \
-    } \
-  } \
-
-#define DSE_SUITE_TEST(name, code) \
-  { \
-    if(dse_has_substring(#name, dse_query)) { \
-      printf("\033[95m> %s\033[0m\n", #name); \
-      code \
-    } \
-  } \
-
-#define DSE_TEST(name, code) \
-  void dse_##name() { \
-    if(dse_has_substring(#name, dse_query)) { \
-      printf("\033[97m> %s\033[0m\n", #name); \
-      code \
-    } \
   } \
 
 typedef void (*dse_test_function)();
@@ -102,7 +59,7 @@ void dse_range_tests_proc(void* thread_args) {
 	}
 }
 
-void dse_init_threads() {
+void dse_run_threads() {
   dse_available_threads = dse_count_threads() - 1;
 
   if(dse_functions_insert_index >= dse_available_threads) {
@@ -114,7 +71,7 @@ void dse_init_threads() {
   }
 
   puts("");
-  printf("Running %lld tests on %lld thread(s)\n", dse_functions_insert_index, dse_available_threads);
+  printf("Running %lld test(s) on %lld thread(s)\n", dse_functions_insert_index, dse_available_threads);
   printf("Tests per thread:  %lld\n", dse_tests_per_thread);
   printf("Remaining tests:   %lld\n", dse_remaining_tests);
   puts("");
@@ -133,7 +90,6 @@ void dse_init_threads() {
     wrapper_args->thread_proc = dse_range_tests_proc;
     wrapper_args->args = (void*)args;
     threads_array[i] = dse_create_thread(wrapper_args);
-    dse_start_thread(threads_array[i]);
   }
 
   dse_wait_all_threads(threads_array, dse_available_threads);

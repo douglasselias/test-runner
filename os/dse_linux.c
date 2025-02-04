@@ -37,10 +37,6 @@ bool dse_has_substring(const char* haystack, const char* needle) {
   return false;
 }
 
-void dse_execute_shell_cmd(char* cmd) {
-  system(cmd);
-}
-
 dse_u64 dse_count_threads() {
   return get_nprocs();
 }
@@ -63,10 +59,6 @@ dse_thread_id dse_create_thread(DSEThreadProcWrapperArgs* wrapper_args) {
   dse_thread_id* thread_id = calloc(sizeof(dse_thread_id), 1);
   pthread_create(thread_id, NULL, dse_thread_proc_wrapper, wrapper_args);
   return *thread_id;
-}
-
-void dse_start_thread(dse_thread_id id) {
-  //ResumeThread(id);
 }
 
 void dse_wait_all_threads(dse_thread_id* thread_array, dse_u64 total_threads) {

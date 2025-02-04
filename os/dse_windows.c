@@ -36,10 +36,6 @@ bool dse_has_substring(const char* haystack, const char* needle) {
   return false;
 }
 
-void dse_execute_shell_cmd(char* cmd) {
-  system(cmd);
-}
-
 dse_u64 dse_count_threads() {
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);
@@ -61,13 +57,7 @@ DWORD dse_thread_proc_wrapper(void* args) {
 }
 
 dse_thread_id dse_create_thread(DSEThreadProcWrapperArgs* wrapper_args) {
-  LPSECURITY_ATTRIBUTES default_security_attr = NULL;
-  dse_u64 default_stack_size = 0;
-  return CreateThread(default_security_attr, default_stack_size, dse_thread_proc_wrapper, wrapper_args, CREATE_SUSPENDED, NULL);
-}
-
-void dse_start_thread(dse_thread_id id) {
-  ResumeThread(id);
+  return CreateThread(NULL, 0, dse_thread_proc_wrapper, wrapper_args, 0, NULL);
 }
 
 void dse_wait_all_threads(dse_thread_id* thread_array, dse_u64 total_threads) {
@@ -110,7 +100,7 @@ void dse_list_files_from_dir(const char* path) {
       // filesize.LowPart = ffd.nFileSizeLow;
       // filesize.HighPart = ffd.nFileSizeHigh;
       if(dse_has_substring(ffd.cFileName, ".test.")) {
-        dse_list_of_filenames[dse_filename_insert_index] = calloc(sizeof(char), (strlen(path) + strlen(ffd.cFileName) + 2)); // one slash between '..' and the filename, and the null terminator.
+        dse_list_of_filenames[dse_filename_insert_index] = calloc(sizeof(char), (strlen(path) + strlen("/") + strlen(ffd.cFileName) + strlen(" \0")));
 
         strcat(dse_list_of_filenames[dse_filename_insert_index], path);
         strcat(dse_list_of_filenames[dse_filename_insert_index], "/");

@@ -1,5 +1,7 @@
 # Test runner for C projects
 
+## This software is in early alpha!
+
 This is a simple test runner that automatically finds your tests and leverages multithreading for executing them. The API is super simple, it only has five macros. The test runner is a single binary that weights less than 200kb.
 
 ## Quick API overview
