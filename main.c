@@ -155,7 +155,7 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts("::: Compiling :::");
   /// @todo: Give an option to the user specify the compiler command.
   /// @todo: Change to support linux systems.
-  dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Zi /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /pdbaltpath:build/generated.pdb /out:build/generated.exe");
+  dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Z7 /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /pdbaltpath:build/generated.pdb /out:build/generated.exe");
 
   if(exit_code != 0) return -1;
 
