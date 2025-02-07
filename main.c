@@ -92,15 +92,14 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   puts("::: Searching test files :::");
   /// @todo: Maybe a better API should be to return the list of directories.
   #ifdef RELEASE
-    // dse_list_files_from_dir(".");
+    dse_list_files_from_dir(".");
     /// @note: Uncomment the line below to test in release mode.
-    dse_list_files_from_dir("..");
+    // dse_list_files_from_dir("..");
   #else
     dse_list_files_from_dir("..");
   #endif
-  puts("::: Finished searching :::");
-  puts(separator);
 
+  puts(separator);
   puts("::: Generating file :::");
   /// @todo: Change to support linux systems.
   system("mkdir build");
@@ -150,19 +149,18 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   fprintf(generated_file, "\n\n\treturn 0;\n}");
 
   fclose(generated_file);
-  puts("::: Finished generating file :::");
-  puts(separator);
 
+  system("cls");
+  puts(separator);
   puts("::: Compiling :::");
   /// @todo: Give an option to the user specify the compiler command.
   /// @todo: Change to support linux systems.
-  dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
-  // dse_s64 exit_code = system("cl /P /nologo /diagnostics:caret /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
-  puts("::: Finished compiling :::");
-  puts(separator);
+  dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Zi /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /out:build/generated.exe");
 
   if(exit_code != 0) return -1;
 
+  puts("");
+  puts(separator);
   puts("::: Running tests :::");
   /// @todo: Change to support linux systems.
   system("build\\generated.exe");

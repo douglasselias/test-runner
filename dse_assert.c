@@ -1,29 +1,16 @@
 #include "os/dse_windows.c"
 /// @todo: Change to support linux systems.
 
-dse_s64* dse_total_assertions_ran;
 dse_s64* dse_total_assertions_failed;
 
 void dse_init_results() {
-  dse_total_assertions_ran     = calloc(sizeof(dse_u64), 1);
-  dse_total_assertions_failed  = calloc(sizeof(dse_u64), 1);
-
-  *dse_total_assertions_ran    = 0;
-  *dse_total_assertions_failed = 0;
+  dse_total_assertions_failed = calloc(sizeof(dse_u64), 1);
 }
 
 void dse_print_results() {
-  dse_u64 total_assertions_passed = *dse_total_assertions_ran - *dse_total_assertions_failed;
-  printf(
-    "\n\n"
-    "\033[35mAssertions:\t%lld\033[0m\n"
-    "\033[31mFailed:\t\t%lld\033[0m\n"
-    "\033[36mPassed:\t\t%lld\033[0m\n"
-    ,
-    *dse_total_assertions_ran,
-    *dse_total_assertions_failed,
-    total_assertions_passed
-  );
+  if(*dse_total_assertions_failed == 0) {
+    puts("\n\033[36mALL TESTS PASSED\033[0m");
+  } else puts("");
 }
 
 /// @note: This is to remove the unnecessary full path of the assertion report.
@@ -43,7 +30,6 @@ dse_u64 __dse_internal_reverse_index(char* string) {
 }
 
 #define DSE_ASSERT(expression, ...) \
-  dse_atomic_increment(dse_total_assertions_ran); \
   if(!(expression)) { \
     dse_atomic_increment(dse_total_assertions_failed); \
     printf("\n\033[31mFAILED\033[0m\t%s:%d ", __FILE__ + __dse_internal_reverse_index(__FILE__), __LINE__); \
