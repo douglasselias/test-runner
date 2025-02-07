@@ -17,8 +17,8 @@ cl /nologo /diagnostics:caret /WX /W4 /wd4189 /wd4996 /wd4100 /wd4244 ..\embed.c
 embed.exe
 
 @REM cl /nologo /diagnostics:caret /WX /W4 /wd4189 /wd4996 /wd4100 /wd4244 ..\main.c
-cl /nologo /Gw /GL /O2 ..\main.c
+cl /nologo /Gw /GL /O2 ..\main.c /link /out:test_runner.exe
 
-main.exe
+test_runner.exe
 
 popd
