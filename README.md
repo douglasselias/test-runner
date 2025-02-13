@@ -6,7 +6,7 @@ This is a simple test runner that automatically finds your tests and leverages m
 
 ## Quick API overview
 
-> `DSE_ASSERT(boolean_expression, format_string, variable_arguments_for_string);`
+> `assertion(boolean_expression, format_string, variable_arguments_for_string);`
 
 ## How to use
 
@@ -17,13 +17,13 @@ First, create a file containing `.test.` in the name, for example: `code.test.c`
 
 void your_test() {
   int result = sum(3, 4);
-  DSE_ASSERT(result == 7);
+  assertion(result == 7);
 
   // You can have more than one assertion per test.
-  DSE_ASSERT(result > 0);
+  assertion(result > 0);
 
   // You can also provide a format string.
-  DSE_ASSERT(result == 7, "Expected 7, but got %d", result);
+  assertion(result == 7, "Expected 7, but got %d", result);
 }
 
 // But what if I want a test suite?
@@ -34,12 +34,12 @@ void your_suite() {
 
   {
     bool result = file_has_newlines(file);
-    DSE_ASSERT(result);
+    assertion(result);
   }
 
   {
     bool result = file_has_execute_permissions(file);
-    DSE_ASSERT(result);
+    assertion(result);
   }
 
   // teardown code

@@ -77,11 +77,7 @@ int32_t main(uint64_t argc, char* argv[]) {
     /// @todo: Copy the string to query.
   }
 
-  printf("\nThis system has %d processors\n\n", __count_threads());
   char* separator = "----------------------------------------";
-
-  puts(separator);
-  puts("::: Searching test files :::");
 
   #define RELEASE 0
   #if RELEASE == 1
@@ -89,9 +85,6 @@ int32_t main(uint64_t argc, char* argv[]) {
   #else
     __list_files_from_dir("..");
   #endif
-
-  puts(separator);
-  puts("::: Generating file :::");
 
   #ifdef _WIN64
   system("mkdir build");
@@ -130,10 +123,6 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   fclose(generated_file);
 
-  system("cls");
-  puts(separator);
-  puts("::: Compiling :::");
-
   /// @todo: Give an option to the user specify the compiler command.
   #ifdef _WIN64
   int64_t exit_code = system("cl /nologo /diagnostics:caret /Z7 /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /pdbaltpath:build/generated.pdb /out:build/generated.exe");
@@ -143,8 +132,12 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   if(exit_code != 0) return -1;
 
-  puts("");
-  puts(separator);
+  #ifdef _WIN64
+  system("cls");
+  #elif defined(__linux__)
+  system("clear");
+  #endif
+
   puts("::: Running tests :::");
 
   #ifdef _WIN64

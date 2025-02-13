@@ -32,7 +32,7 @@ uint64_t __reverse_index(char* string) {
   return 0;
 }
 
-#define DSE_ASSERT(expression, ...) \
+#define assertion(expression, ...) \
   if(!(expression)) { \
     __atomic_increment(__total_assertions_failed); \
     printf("\n\033[31mFAILED\033[0m\t%s:%d ", __FILE__ + __reverse_index(__FILE__), __LINE__); \

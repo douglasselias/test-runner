@@ -80,7 +80,6 @@ void __list_files_from_dir(const char* path) {
           i++;
         }
 
-        printf("Found: %s\n", __list_of_filenames[__filename_insert_index]);
         __filename_insert_index++;
       }
     }
