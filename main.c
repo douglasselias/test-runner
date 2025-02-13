@@ -1,4 +1,3 @@
-// #include "dse_assert.c"
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -33,13 +32,13 @@ void extract_name_of_test(char* text) {
   while(line != NULL) {
     /// @todo: Not a robust way to detect commented lines.
     /// Does not catch multiline comments!
-    bool is_not_a_commented_line = !dse_has_substring(line, "//");
+    bool is_not_a_single_commented_line = !dse_has_substring(line, "//");
     // bool is_not_a_skip_assertion = !dse_has_substring(line, "DSE_SKIP(");
     bool is_a_test = dse_has_substring(line, "void")
                   && dse_has_substring(line, "()")
                   && dse_has_substring(line, "{");
 
-    if(is_not_a_commented_line && is_a_test) {
+    if(is_not_a_single_commented_line && is_a_test) {
       uint64_t test_name_start_index = char_index(line, 'd') + 2;
       uint64_t left_parenthesis_index = char_index(line, '(');
 
@@ -49,6 +48,12 @@ void extract_name_of_test(char* text) {
     }
 
     line = strtok(NULL, "\n");
+  }
+}
+
+void decode_file_embed(FILE* file, unsigned char data[], uint64_t size) {
+  for(uint64_t i = 0; i < size; i++) {
+    fprintf(file, "%c", data[i] == '\0' ? '\n' : (char)data[i]);
   }
 }
 
@@ -64,7 +69,7 @@ int32_t main(uint64_t argc, char* argv[]) {
     puts("Give a star! https://github.com/douglasselias/test-runner");
     return 0;
   } else {
-    /// @todo: Copy the string to dse_query.
+    /// @todo: Copy the string to query.
   }
 
   printf("\nThis system has %d processors\n\n", dse_count_threads());
@@ -72,7 +77,7 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   puts(separator);
   puts("::: Searching test files :::");
-  /// @todo: Maybe a better API should be to return the list of files.
+
   #define RELEASE 0
   #if RELEASE == 1
     dse_list_files_from_dir(".");
@@ -91,20 +96,9 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   FILE* generated_file = fopen("build/generated.c", "w");
 
-  int64_t string_matcher_size = sizeof(string_matcher_file) / sizeof(string_matcher_file[0]);
-  for(int64_t i = 0; i < string_matcher_size; i++) {
-    fprintf(generated_file, "%c", string_matcher_file[i] == '\0' ? '\n' : (char)string_matcher_file[i]);
-  }
-
-  int64_t os_file_size = sizeof(os_file) / sizeof(os_file[0]);
-  for(int64_t i = 0; i < os_file_size; i++) {
-    fprintf(generated_file, "%c", os_file[i] == '\0' ? '\n' : (char)os_file[i]);
-  }
-
-  int64_t assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
-  for(int64_t i = 0; i < assert_file_size; i++) {
-    fprintf(generated_file, "%c", dse_assert_file[i] == '\0' ? '\n' : (char)dse_assert_file[i]);
-  }
+  decode_file_embed(generated_file, string_matcher_file, string_matcher_file_size);
+  decode_file_embed(generated_file, os_file, os_file_size);
+  decode_file_embed(generated_file, dse_assert_file, dse_assert_file_size);
 
   for(uint64_t i = 0; i < dse_filename_insert_index; i++) {
     if(dse_list_of_filenames[i]) {

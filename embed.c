@@ -14,6 +14,7 @@ void embed_file(FILE* file_descriptor, char* variable_name, File file) {
     fprintf(file_descriptor, "0x%x,", file.text[i]);
   }
   fprintf(file_descriptor, " 0x%x };", file.text[file.size-1]);
+  fprintf(file_descriptor, "unsigned long %s_size = %zd;", variable_name, file.size);
 }
 
 int main() {
@@ -34,8 +35,6 @@ int main() {
   embed_file(generated_embed_file, "string_matcher_file", string_matcher_file);
   embed_file(generated_embed_file, "os_file", os_file);
   embed_file(generated_embed_file, "dse_assert_file", assert_file);
-
-  /// @todo: add a function that writes back those files, so main.c can call one function instead.
 
   fclose(generated_embed_file);
 }
