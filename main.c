@@ -94,27 +94,30 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   puts(separator);
   puts("::: Generating file :::");
-  /// @todo: Change to support linux systems.
+
+  #ifdef _WIN64
   system("mkdir build");
+  #elif defined(__linux__)
+  system("mkdir -p build");
+  #endif
+
   FILE* generated_file = fopen("build/generated.c", "w");
 
-  /// @todo: Change to support linux systems. In this case, is only the name.
-  dse_u64 windows_file_size = sizeof(dse_windows_file) / sizeof(dse_windows_file[0]);
-  dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
-  for(dse_u64 i = 0; i < windows_file_size; i++) {
-    fprintf(generated_file, "%c", dse_windows_file[i] == '\0' ? '\n' : (char)dse_windows_file[i]);
+  dse_u64 os_file_size = sizeof(os_file) / sizeof(os_file[0]);
+  for(dse_u64 i = 0; i < os_file_size; i++) {
+    fprintf(generated_file, "%c", os_file[i] == '\0' ? '\n' : (char)os_file[i]);
   }
+
+  dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
   for(dse_u64 i = 0; i < assert_file_size; i++) {
     fprintf(generated_file, "%c", dse_assert_file[i] == '\0' ? '\n' : (char)dse_assert_file[i]);
   }
-
 
   for(dse_u64 i = 0; i < dse_filename_insert_index; i++) {
     if(dse_list_of_filenames[i]) {
       fprintf(generated_file, "#include \"../%s\"\n", dse_list_of_filenames[i]);
       char* file_text = read_entire_file(dse_list_of_filenames[i]);
       extract_name_of_test(file_text);
-      /// @todo: A better approach is to allocate once and reuse.
       free(file_text);
     }
   }
@@ -138,15 +141,23 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   system("cls");
   puts(separator);
   puts("::: Compiling :::");
+
   /// @todo: Give an option to the user specify the compiler command.
-  /// @todo: Change to support linux systems.
+  #ifdef _WIN64
   dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Z7 /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /pdbaltpath:build/generated.pdb /out:build/generated.exe");
+  #elif defined(__linux__)
+  dse_s64 exit_code = system("gcc -Wall -Wextra build/generated.c -o build/generated");
+  #endif
 
   if(exit_code != 0) return -1;
 
   puts("");
   puts(separator);
   puts("::: Running tests :::");
-  /// @todo: Change to support linux systems.
-  system("build\\generated.exe");
+
+  #ifdef _WIN64
+  system("build\\generated");
+  #elif defined(__linux__)
+  system("build/generated");
+  #endif
 }

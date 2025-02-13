@@ -1,5 +1,8 @@
+#ifdef _WIN64
 #include "os/dse_windows.c"
-/// @todo: Change to support linux systems.
+#elif defined(__linux__)
+#include "os/dse_linux.c"
+#endif
 
 dse_s64* dse_total_assertions_failed;
 
@@ -69,15 +72,14 @@ void dse_run_threads() {
   }
 
   dse_thread_id* threads_array = calloc(sizeof(dse_thread_id), dse_available_threads);
-  /// @todo: Maybe use two for loops, one to create the threads and the other to run the threads.
   dse_u64 start_index = 0;
+
   for(dse_u64 i = 0; i < dse_available_threads; i++) {
     DSEThreadArgs* args = calloc(sizeof(DSEThreadArgs), 1);
     args->start_index = start_index;
     args->end_index   = start_index + dse_tests_per_thread + (i < dse_remaining_tests ? 1 : 0);
     start_index = args->end_index;
 
-    /// @todo: Do I really need another calloc?
     DSEThreadProcWrapperArgs* wrapper_args = calloc(sizeof(DSEThreadProcWrapperArgs), 1);
     wrapper_args->thread_proc = dse_range_tests_proc;
     wrapper_args->args = (void*)args;

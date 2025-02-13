@@ -8,7 +8,7 @@
 typedef int64_t  dse_s64;
 typedef uint64_t dse_u64;
 
-/// @note: CopyPasta from dse_windows.c
+/// @todo: CopyPasta from dse_windows.c
 bool dse_has_substring(const char* haystack, const char* needle) {
   dse_u64 haystack_length = strlen(haystack);
   dse_u64 needle_length   = strlen(needle);
@@ -57,16 +57,6 @@ File read_entire_file(const char* path) {
   fclose(file_descriptor);
 
   string[size] = '\0';
-
-  /// @todo: Not a robust way to remove the os/dse_windows.c include for embedding the source file. A better wayt is to remove any include that references a source file in this project, since it will be copy pasted on the final file to embed on the test runner binary.
-  char* line = strtok(string, "\n");
-  /// @todo: Change to support linux systems.
-  if(dse_has_substring(line, "dse_windows")) {
-    dse_u64 line_size = strlen(line);
-    for(dse_u64 i = 0; i < line_size; i++) {
-      string[i] = ' ';
-    }
-  }
   
   file.text = string;
   file.size = size;
@@ -81,15 +71,38 @@ void embed_file(FILE* file_descriptor, char* variable_name, File file) {
   fprintf(file_descriptor, " 0x%x };", file.text[file.size-1]);
 }
 
+void remove_os_include(char* string) {
+  char* line = strtok(string, "\n");
+  dse_u64 i = 0;
+  while(line != NULL) {
+    dse_u64 line_size = strlen(line);
+    /// @note: This is the file name in the os folder.
+    if(dse_has_substring(line, "dse_windows")
+    || dse_has_substring(line, "dse_linux")) {
+      dse_u64 line_end = i + line_size + 1;
+      for(; i < line_end; i++) {
+        string[i] = ' ';
+      }
+      break;
+    }
+    i += line_size;
+    line = strtok(NULL, "\n");
+  }
+}
+
 int main() {
   FILE* generated_embed_file = fopen("lib_embed.c", "w");
 
-  /// @todo: Change to support linux systems.
-  File dse_windows_file = read_entire_file("../os/dse_windows.c");
+  #ifdef _WIN64
+  File os_file = read_entire_file("../os/dse_windows.c");
+  #elif defined(__linux__)
+  File os_file = read_entire_file("../os/dse_linux.c");
+  #endif
   File dse_assert_file  = read_entire_file("../dse_assert.c");
+  remove_os_include(dse_assert_file.text);
 
-  /// @todo: If the variable name is changed, then it must change on main.c
-  embed_file(generated_embed_file, "dse_windows_file", dse_windows_file);
+  /// @note: If the variable name is changed, then it must change on main.c
+  embed_file(generated_embed_file, "os_file", os_file);
   embed_file(generated_embed_file, "dse_assert_file", dse_assert_file);
   fclose(generated_embed_file);
 }
