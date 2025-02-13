@@ -1,13 +1,13 @@
-#ifdef _WIN64
-#include "os/dse_windows.c"
-#elif defined(__linux__)
-#include "os/dse_linux.c"
-#endif
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 
-dse_s64* dse_total_assertions_failed;
+uint64_t* dse_total_assertions_failed;
 
 void dse_init_results() {
-  dse_total_assertions_failed = calloc(sizeof(dse_u64), 1);
+  dse_total_assertions_failed = calloc(sizeof(uint64_t), 1);
 }
 
 void dse_print_results() {
@@ -17,10 +17,10 @@ void dse_print_results() {
 }
 
 /// @note: This is to remove the unnecessary full path of the assertion report.
-dse_u64 __dse_internal_reverse_index(char* string) {
-  dse_u64 length = strlen(string);
+uint64_t __dse_internal_reverse_index(char* string) {
+  uint64_t length = strlen(string);
   bool found_first_dot = false;
-  for(dse_u64 i = length - 1; i > 0; i--) {
+  for(uint64_t i = length - 1; i > 0; i--) {
     if(found_first_dot && string[i] == '.') {
       return i+1;
     } else found_first_dot = false;
@@ -42,20 +42,20 @@ dse_u64 __dse_internal_reverse_index(char* string) {
 typedef void (*dse_test_function)();
 #define dse_max_test_functions 10000
 dse_test_function dse_test_functions[dse_max_test_functions] = {0};
-dse_u64 dse_functions_insert_index = 0;
+uint64_t dse_functions_insert_index = 0;
 
-dse_u64 dse_tests_per_thread  = 1;
-dse_u64 dse_remaining_tests   = 0;
-dse_u64 dse_available_threads = 1;
+uint64_t dse_tests_per_thread  = 1;
+uint64_t dse_remaining_tests   = 0;
+uint64_t dse_available_threads = 1;
 
 typedef struct {
-  dse_u64 start_index;
-  dse_u64 end_index;
+  uint64_t start_index;
+  uint64_t end_index;
 } DSEThreadArgs;
 
 void dse_range_tests_proc(void* thread_args) {
   DSEThreadArgs args = *(DSEThreadArgs*)thread_args;
-  for(dse_u64 i = args.start_index; i < args.end_index; i++) {
+  for(uint64_t i = args.start_index; i < args.end_index; i++) {
 		dse_test_functions[i]();
 	}
 }
@@ -72,9 +72,9 @@ void dse_run_threads() {
   }
 
   dse_thread_id* threads_array = calloc(sizeof(dse_thread_id), dse_available_threads);
-  dse_u64 start_index = 0;
+  uint64_t start_index = 0;
 
-  for(dse_u64 i = 0; i < dse_available_threads; i++) {
+  for(uint64_t i = 0; i < dse_available_threads; i++) {
     DSEThreadArgs* args = calloc(sizeof(DSEThreadArgs), 1);
     args->start_index = start_index;
     args->end_index   = start_index + dse_tests_per_thread + (i < dse_remaining_tests ? 1 : 0);

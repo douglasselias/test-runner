@@ -1,43 +1,14 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-#include<stdint.h>
-#include<stdbool.h>
-#include<ctype.h>
-#include<sys/sysinfo.h>
-#include<pthread.h>
-#include<dirent.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <ctype.h>
+#include <sys/sysinfo.h>
+#include <pthread.h>
+#include <dirent.h>
 
-typedef int64_t  dse_s64;
-typedef uint64_t dse_u64;
-
-/// @note: This is not platform dependent but I don't feel like moving this to another file :)
-bool dse_has_substring(const char* haystack, const char* needle) {
-  dse_u64 haystack_length = strlen(haystack);
-  dse_u64 needle_length   = strlen(needle);
-
-  if(needle_length == 0) return true;
-  if(haystack_length < needle_length) return false;
-
-  dse_u64 haystack_index = 0;
-  dse_u64 needle_index   = 0;
-
-  while(haystack_index < haystack_length) {
-    if(tolower(haystack[haystack_index]) == tolower(needle[needle_index])) {
-      needle_index++;
-
-      if(needle_index < needle_length) haystack_index++;
-      else return true;
-    } else {
-      needle_index = 0;
-      haystack_index++;
-    }
-  }
-
-  return false;
-}
-
-dse_u64 dse_count_threads() {
+uint8_t dse_count_threads() {
   return get_nprocs();
 }
 
@@ -61,8 +32,8 @@ dse_thread_id dse_create_thread(DSEThreadProcWrapperArgs* wrapper_args) {
   return *thread_id;
 }
 
-void dse_wait_all_threads(dse_thread_id* thread_array, dse_u64 total_threads) {
-  for(dse_u64 i = 0; i < total_threads; i++)
+void dse_wait_all_threads(dse_thread_id* thread_array, uint8_t total_threads) {
+  for(uint8_t i = 0; i < total_threads; i++)
     pthread_join(thread_array[i], NULL);
 }
 
@@ -72,7 +43,7 @@ void dse_atomic_increment(dse_s64* n) {
 
 #define dse_max_filenames 1000
 char* dse_list_of_filenames[dse_max_filenames] = {0};
-dse_u64 dse_filename_insert_index = 0;
+uint64_t dse_filename_insert_index = 0;
 
 void dse_list_files_from_dir(const char* path) {
   DIR* d = opendir(path);
@@ -83,7 +54,6 @@ void dse_list_files_from_dir(const char* path) {
       unsigned char dir_type = dir->d_type;
       if(dir_name[0] != '.') {
         if(dir_type == DT_DIR) {
-          printf("Recurse: %s\n", dir_name);
           char* full_path = calloc(sizeof(char), strlen(path) + strlen(dir_name));
           strcpy(full_path, path);
           strcat(full_path, "/");

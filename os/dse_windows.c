@@ -1,42 +1,13 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-#include<stdint.h>
-#include<stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include<windows.h>
 
-typedef int64_t  dse_s64;
-typedef uint64_t dse_u64;
-
-/// @note: This is not platform dependent but I don't feel like moving this to another file :)
-bool dse_has_substring(const char* haystack, const char* needle) {
-  dse_u64 haystack_length = strlen(haystack);
-  dse_u64 needle_length   = strlen(needle);
-
-  if(needle_length == 0) return true;
-  if(haystack_length < needle_length) return false;
-
-  dse_u64 haystack_index = 0;
-  dse_u64 needle_index   = 0;
-
-  while(haystack_index < haystack_length) {
-    if(tolower(haystack[haystack_index]) == tolower(needle[needle_index])) {
-      needle_index++;
-
-      if(needle_index < needle_length) haystack_index++;
-      else return true;
-    } else {
-      needle_index = 0;
-      haystack_index++;
-    }
-  }
-
-  return false;
-}
-
-dse_u64 dse_count_threads() {
+uint32_t dse_count_threads() {
   SYSTEM_INFO sysinfo;
   GetSystemInfo(&sysinfo);
   return sysinfo.dwNumberOfProcessors;
@@ -60,17 +31,17 @@ dse_thread_id dse_create_thread(DSEThreadProcWrapperArgs* wrapper_args) {
   return CreateThread(NULL, 0, dse_thread_proc_wrapper, wrapper_args, 0, NULL);
 }
 
-void dse_wait_all_threads(dse_thread_id* thread_array, dse_u64 total_threads) {
+void dse_wait_all_threads(dse_thread_id* thread_array, uint64_t total_threads) {
   WaitForMultipleObjects((DWORD)total_threads, thread_array, true, INFINITE);
 }
 
-void dse_atomic_increment(dse_s64* n) {
-  InterlockedIncrement64(n);
+void dse_atomic_increment(uint64_t* n) {
+  InterlockedIncrement64((int64_t*)n);
 }
 
 #define dse_max_filenames 1000
 char* dse_list_of_filenames[dse_max_filenames] = {0};
-dse_u64 dse_filename_insert_index = 0;
+uint64_t dse_filename_insert_index = 0;
 
 void dse_list_files_from_dir(const char* path) {
   char dir_name[MAX_PATH] = {0};
@@ -80,10 +51,7 @@ void dse_list_files_from_dir(const char* path) {
   WIN32_FIND_DATA ffd;
   HANDLE find_file_handle = FindFirstFile(dir_name, &ffd);
 
-  if(INVALID_HANDLE_VALUE == find_file_handle) {
-    puts("Invalid file or directory.");
-    return;
-  }
+  if(INVALID_HANDLE_VALUE == find_file_handle) return;
 
   do {
     if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -95,10 +63,6 @@ void dse_list_files_from_dir(const char* path) {
         dse_list_files_from_dir(dir_buffer);
       }
     } else {
-      /// @todo: Maybe I can use this in the read file...
-      // LARGE_INTEGER filesize;
-      // filesize.LowPart = ffd.nFileSizeLow;
-      // filesize.HighPart = ffd.nFileSizeHigh;
       if(dse_has_substring(ffd.cFileName, ".test.")) {
         dse_list_of_filenames[dse_filename_insert_index] = calloc(sizeof(char), (strlen(path) + strlen("/") + strlen(ffd.cFileName) + strlen(" \0")));
 
@@ -107,7 +71,7 @@ void dse_list_files_from_dir(const char* path) {
         strcat(dse_list_of_filenames[dse_filename_insert_index], ffd.cFileName);
 
         /// @note: Convert backwards slash to forward slash
-        dse_u64 i = 0;
+        uint64_t i = 0;
         size_t filename_length = strlen(dse_list_of_filenames[dse_filename_insert_index]);
         while(i < filename_length) {
           if(dse_list_of_filenames[dse_filename_insert_index][i] == '\\') {
@@ -116,8 +80,6 @@ void dse_list_files_from_dir(const char* path) {
           i++;
         }
 
-        /// @todo: Maybe I can use this in the read file...
-        // list_of_filesizes[dse_filename_insert_index] = filesize.QuadPart;
         printf("Found: %s\n", dse_list_of_filenames[dse_filename_insert_index]);
         dse_filename_insert_index++;
       }

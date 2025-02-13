@@ -1,4 +1,12 @@
-#include "dse_assert.c"
+// #include "dse_assert.c"
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
+
+#include "file_reader.c"
+#include "string_matcher.c"
+#include "os/dse_windows.c"
 
 #include "build/lib_embed.c"
 
@@ -6,39 +14,19 @@ bool strings_are_equal(char* a, char* b) {
   return strcmp(a, b) == 0;
 }
 
-char* read_entire_file(const char* path) {
-  FILE* file = fopen(path, "rb");
-
-  if(file == NULL) {
-    printf("File %s not found.\n", path);
-    return "";
-  }
-
-  /// @todo: I could use a struct with path and size. I only need to confirm if by reading the file system on Linux I can get the file size. Then I could remove these three lines.
-  fseek(file, 0, SEEK_END);
-  size_t size = ftell(file);
-  fseek(file, 0, SEEK_SET);
-
-  char* string = calloc(sizeof(char), size + 1);
-  fread(string, size, 1, file);
-  fclose(file);
-
-  string[size] = '\0';
-  return string;
-}
-
-dse_s64 char_index(const char* haystack, char needle) {
-  for(dse_u64 i = 0; i < strlen(haystack); i++) {
+int64_t char_index(const char* haystack, char needle) {
+  for(uint64_t i = 0; i < strlen(haystack); i++) {
     if(haystack[i] == needle) return i;
   }
   return -1;
 }
 
-char* test_names[dse_max_test_functions] = {0};
-dse_u64 test_names_insert_index = 0;
+/// @note: This [1000] is the same as dse_mas_test_functions
+char* test_names[1000] = {0};
+uint64_t test_names_insert_index = 0;
 
 void extract_name_of_test(char* text) {
-  dse_u64 test_name_length = 200;
+  uint64_t test_name_length = 200;
   char* test_name = calloc(sizeof(char), test_name_length);
   char* line = strtok(text, "\n");
 
@@ -52,8 +40,8 @@ void extract_name_of_test(char* text) {
                   && dse_has_substring(line, "{");
 
     if(is_not_a_commented_line && is_a_test) {
-      dse_u64 test_name_start_index = char_index(line, 'd') + 2;
-      dse_u64 left_parenthesis_index = char_index(line, '(');
+      uint64_t test_name_start_index = char_index(line, 'd') + 2;
+      uint64_t left_parenthesis_index = char_index(line, '(');
 
       test_names[test_names_insert_index] = calloc(sizeof(char), test_name_length);
       memcpy(test_names[test_names_insert_index], line + test_name_start_index, left_parenthesis_index - test_name_start_index);
@@ -64,7 +52,7 @@ void extract_name_of_test(char* text) {
   }
 }
 
-dse_s64 main(dse_u64 argc, char* argv[]) {
+int32_t main(uint64_t argc, char* argv[]) {
   char* cli_arg = argv[1] != NULL && strlen(argv[1]) > 0 ? argv[1] : "";
 
   if(strings_are_equal("help", cli_arg)) {
@@ -79,7 +67,7 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
     /// @todo: Copy the string to dse_query.
   }
 
-  printf("\nThis system has %lld processors\n\n", dse_count_threads());
+  printf("\nThis system has %d processors\n\n", dse_count_threads());
   char* separator = "----------------------------------------";
 
   puts(separator);
@@ -103,20 +91,25 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   FILE* generated_file = fopen("build/generated.c", "w");
 
-  dse_u64 os_file_size = sizeof(os_file) / sizeof(os_file[0]);
-  for(dse_u64 i = 0; i < os_file_size; i++) {
+  int64_t string_matcher_size = sizeof(string_matcher_file) / sizeof(string_matcher_file[0]);
+  for(int64_t i = 0; i < string_matcher_size; i++) {
+    fprintf(generated_file, "%c", string_matcher_file[i] == '\0' ? '\n' : (char)string_matcher_file[i]);
+  }
+
+  int64_t os_file_size = sizeof(os_file) / sizeof(os_file[0]);
+  for(int64_t i = 0; i < os_file_size; i++) {
     fprintf(generated_file, "%c", os_file[i] == '\0' ? '\n' : (char)os_file[i]);
   }
 
-  dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
-  for(dse_u64 i = 0; i < assert_file_size; i++) {
+  int64_t assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
+  for(int64_t i = 0; i < assert_file_size; i++) {
     fprintf(generated_file, "%c", dse_assert_file[i] == '\0' ? '\n' : (char)dse_assert_file[i]);
   }
 
-  for(dse_u64 i = 0; i < dse_filename_insert_index; i++) {
+  for(uint64_t i = 0; i < dse_filename_insert_index; i++) {
     if(dse_list_of_filenames[i]) {
       fprintf(generated_file, "#include \"../%s\"\n", dse_list_of_filenames[i]);
-      char* file_text = read_entire_file(dse_list_of_filenames[i]);
+      char* file_text = read_entire_file(dse_list_of_filenames[i]).text;
       extract_name_of_test(file_text);
       free(file_text);
     }
@@ -124,7 +117,7 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   fprintf(generated_file, "\nint main() {");
 
-  for(dse_u64 i = 0; i < test_names_insert_index; i++) {
+  for(uint64_t i = 0; i < test_names_insert_index; i++) {
     if(test_names[i]) {
       fprintf(generated_file, "\n\tdse_test_functions[dse_functions_insert_index++] = %s;", test_names[i]);
     }
@@ -144,9 +137,9 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   /// @todo: Give an option to the user specify the compiler command.
   #ifdef _WIN64
-  dse_s64 exit_code = system("cl /nologo /diagnostics:caret /Z7 /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /pdbaltpath:build/generated.pdb /out:build/generated.exe");
+  int64_t exit_code = system("cl /nologo /diagnostics:caret /Z7 /fsanitize=address /Wall /WX /W4 /wd4189 /wd4464 /wd5045 /wd4255 /wd4996 /wd4100 /wd4244 /Fo:\"build/generated\" build/generated.c /link /pdbaltpath:build/generated.pdb /out:build/generated.exe");
   #elif defined(__linux__)
-  dse_s64 exit_code = system("gcc -Wall -Wextra build/generated.c -o build/generated");
+  int64_t exit_code = system("gcc -Wall -Wextra build/generated.c -o build/generated");
   #endif
 
   if(exit_code != 0) return -1;
