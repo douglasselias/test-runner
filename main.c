@@ -5,9 +5,14 @@
 
 #include "file_reader.c"
 #include "string_matcher.c"
-#include "os/dse_windows.c"
 
-#include "build/lib_embed.c"
+#ifdef _WIN64
+#include "os/windows.c"
+#elif defined(__linux__)
+#include "os/linux.c"
+#endif
+
+#include "build/embedded_files_for_test_runner.c"
 
 bool strings_are_equal(char* a, char* b) {
   return strcmp(a, b) == 0;
@@ -20,7 +25,7 @@ int64_t char_index(const char* haystack, char needle) {
   return -1;
 }
 
-/// @note: This [1000] is the same as dse_mas_test_functions
+/// @note: This [1000] is the same as __max_test_functions on assert.c
 char* test_names[1000] = {0};
 uint64_t test_names_insert_index = 0;
 
@@ -32,18 +37,18 @@ void extract_name_of_test(char* text) {
   while(line != NULL) {
     /// @todo: Not a robust way to detect commented lines.
     /// Does not catch multiline comments!
-    bool is_not_a_single_commented_line = !dse_has_substring(line, "//");
-    // bool is_not_a_skip_assertion = !dse_has_substring(line, "DSE_SKIP(");
-    bool is_a_test = dse_has_substring(line, "void")
-                  && dse_has_substring(line, "()")
-                  && dse_has_substring(line, "{");
+    bool is_not_a_single_commented_line = !__has_substring(line, "//");
+    // bool is_not_a_skip_assertion = !__has_substring(line, "@skip");
+    bool is_a_test = __has_substring(line, "void")
+                  && __has_substring(line, "()")
+                  && __has_substring(line, "{");
 
     if(is_not_a_single_commented_line && is_a_test) {
-      uint64_t test_name_start_index = char_index(line, 'd') + 2;
+      uint64_t test_name___start_index = char_index(line, 'd') + 2;
       uint64_t left_parenthesis_index = char_index(line, '(');
 
       test_names[test_names_insert_index] = calloc(sizeof(char), test_name_length);
-      memcpy(test_names[test_names_insert_index], line + test_name_start_index, left_parenthesis_index - test_name_start_index);
+      memcpy(test_names[test_names_insert_index], line + test_name___start_index, left_parenthesis_index - test_name___start_index);
       test_names_insert_index++;
     }
 
@@ -72,7 +77,7 @@ int32_t main(uint64_t argc, char* argv[]) {
     /// @todo: Copy the string to query.
   }
 
-  printf("\nThis system has %d processors\n\n", dse_count_threads());
+  printf("\nThis system has %d processors\n\n", __count_threads());
   char* separator = "----------------------------------------";
 
   puts(separator);
@@ -80,9 +85,9 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   #define RELEASE 0
   #if RELEASE == 1
-    dse_list_files_from_dir(".");
+    __list_files_from_dir(".");
   #else
-    dse_list_files_from_dir("..");
+    __list_files_from_dir("..");
   #endif
 
   puts(separator);
@@ -96,14 +101,14 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   FILE* generated_file = fopen("build/generated.c", "w");
 
-  decode_file_embed(generated_file, string_matcher_file, string_matcher_file_size);
-  decode_file_embed(generated_file, os_file, os_file_size);
-  decode_file_embed(generated_file, dse_assert_file, dse_assert_file_size);
+  decode_file_embed(generated_file, __string_matcher_file, __string_matcher_file_size);
+  decode_file_embed(generated_file, __os_file, __os_file_size);
+  decode_file_embed(generated_file, __assert_file, __assert_file_size);
 
-  for(uint64_t i = 0; i < dse_filename_insert_index; i++) {
-    if(dse_list_of_filenames[i]) {
-      fprintf(generated_file, "#include \"../%s\"\n", dse_list_of_filenames[i]);
-      char* file_text = read_entire_file(dse_list_of_filenames[i]).text;
+  for(uint64_t i = 0; i < __filename_insert_index; i++) {
+    if(__list_of_filenames[i]) {
+      fprintf(generated_file, "#include \"../%s\"\n", __list_of_filenames[i]);
+      char* file_text = read_entire_file(__list_of_filenames[i]).text;
       extract_name_of_test(file_text);
       free(file_text);
     }
@@ -113,13 +118,13 @@ int32_t main(uint64_t argc, char* argv[]) {
 
   for(uint64_t i = 0; i < test_names_insert_index; i++) {
     if(test_names[i]) {
-      fprintf(generated_file, "\n\tdse_test_functions[dse_functions_insert_index++] = %s;", test_names[i]);
+      fprintf(generated_file, "\n\t__test_functions[__functions_insert_index++] = %s;", test_names[i]);
     }
   }
 
-  fprintf(generated_file, "\n\n\tdse_init_results();");
-  fprintf(generated_file, "\n\tdse_run_threads();");
-  fprintf(generated_file, "\n\tdse_print_results();");
+  fprintf(generated_file, "\n\n\t__init_results();");
+  fprintf(generated_file, "\n\t__run_threads();");
+  fprintf(generated_file, "\n\t__print_results();");
 
   fprintf(generated_file, "\n\n\treturn 0;\n}");
 

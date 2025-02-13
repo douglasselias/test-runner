@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-bool dse_has_substring(const char* haystack, const char* needle) {
+bool __has_substring(const char* haystack, const char* needle) {
   size_t haystack_length = strlen(haystack);
   size_t needle_length   = strlen(needle);
 

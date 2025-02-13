@@ -18,23 +18,22 @@ void embed_file(FILE* file_descriptor, char* variable_name, File file) {
 }
 
 int main() {
-  FILE* generated_embed_file = fopen("lib_embed.c", "w");
+  FILE* generated_embed_file = fopen("embedded_files_for_test_runner.c", "w");
 
   #ifdef _WIN64
-  File os_file = read_entire_file("../os/dse_windows.c");
+  File os_file = read_entire_file("../os/windows.c");
   #elif defined(__linux__)
-  File os_file = read_entire_file("../os/dse_linux.c");
+  File os_file = read_entire_file("../os/linux.c");
   #endif
 
-  File assert_file  = read_entire_file("../dse_assert.c");
-
+  File assert_file  = read_entire_file("../assert.c");
   File string_matcher_file = read_entire_file("../string_matcher.c");
 
   /// @note: If the variable name is changed, then it must change on main.c
   /// @note: This has a implicit order. string_matcher.c should come first.
-  embed_file(generated_embed_file, "string_matcher_file", string_matcher_file);
-  embed_file(generated_embed_file, "os_file", os_file);
-  embed_file(generated_embed_file, "dse_assert_file", assert_file);
+  embed_file(generated_embed_file, "__string_matcher_file", string_matcher_file);
+  embed_file(generated_embed_file, "__os_file", os_file);
+  embed_file(generated_embed_file, "__assert_file", assert_file);
 
   fclose(generated_embed_file);
 }
