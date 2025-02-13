@@ -1,9 +1,6 @@
 #include "dse_assert.c"
 
-#define RELEASE 1
-#ifdef RELEASE
 #include "build/lib_embed.c"
-#endif
 
 bool strings_are_equal(char* a, char* b) {
   return strcmp(a, b) == 0;
@@ -71,14 +68,12 @@ void extract_name_of_test(char* text) {
 dse_s64 main(dse_u64 argc, char* argv[]) {
   char* cli_arg = argv[1] != NULL && strlen(argv[1]) > 0 ? argv[1] : "";
 
-  if(strings_are_equal("help", cli_arg)
-  || strings_are_equal("-help", cli_arg)
-  || strings_are_equal("--help", cli_arg)) {
+  if(strings_are_equal("help", cli_arg)) {
     puts("This software is in early alpha!");
     // puts("\nYou can provide a query to execute all the tests that contains the query.");
-    // puts("\t> test_runner.exe my_query");
+    // puts("\t> test_runner my_query");
     // puts("Running without a query will execute all tests.");
-    puts("Tests and Suites names must be a valid C identifier.");
+    puts("Tests names must be a valid C identifier.");
     puts("Give a star! https://github.com/douglasselias/test-runner");
     return 0;
   } else {
@@ -90,11 +85,10 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
 
   puts(separator);
   puts("::: Searching test files :::");
-  /// @todo: Maybe a better API should be to return the list of directories.
-  #ifdef RELEASE
+  /// @todo: Maybe a better API should be to return the list of files.
+  #define RELEASE 0
+  #if RELEASE == 1
     dse_list_files_from_dir(".");
-    /// @note: Uncomment the line below to test in release mode.
-    // dse_list_files_from_dir("..");
   #else
     dse_list_files_from_dir("..");
   #endif
@@ -105,28 +99,20 @@ dse_s64 main(dse_u64 argc, char* argv[]) {
   system("mkdir build");
   FILE* generated_file = fopen("build/generated.c", "w");
 
-  #ifdef RELEASE
-    /// @todo: Change to support linux systems. In this case, is only the name.
-    dse_u64 windows_file_size = sizeof(dse_windows_file) / sizeof(dse_windows_file[0]);
-    dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
-    for(dse_u64 i = 0; i < windows_file_size; i++) {
-      fprintf(generated_file, "%c", dse_windows_file[i] == '\0' ? '\n' : (char)dse_windows_file[i]);
-    }
-    for(dse_u64 i = 0; i < assert_file_size; i++) {
-      fprintf(generated_file, "%c", dse_assert_file[i] == '\0' ? '\n' : (char)dse_assert_file[i]);
-    }
-  #else
-    fprintf(generated_file, "#include \"../dse_assert.c\"\n");
-  #endif
+  /// @todo: Change to support linux systems. In this case, is only the name.
+  dse_u64 windows_file_size = sizeof(dse_windows_file) / sizeof(dse_windows_file[0]);
+  dse_u64 assert_file_size = sizeof(dse_assert_file) / sizeof(dse_assert_file[0]);
+  for(dse_u64 i = 0; i < windows_file_size; i++) {
+    fprintf(generated_file, "%c", dse_windows_file[i] == '\0' ? '\n' : (char)dse_windows_file[i]);
+  }
+  for(dse_u64 i = 0; i < assert_file_size; i++) {
+    fprintf(generated_file, "%c", dse_assert_file[i] == '\0' ? '\n' : (char)dse_assert_file[i]);
+  }
 
 
   for(dse_u64 i = 0; i < dse_filename_insert_index; i++) {
     if(dse_list_of_filenames[i]) {
-      #ifdef RELEASE
       fprintf(generated_file, "#include \"../%s\"\n", dse_list_of_filenames[i]);
-      #else
-      fprintf(generated_file, "#include \"%s\"\n", dse_list_of_filenames[i]);
-      #endif
       char* file_text = read_entire_file(dse_list_of_filenames[i]);
       extract_name_of_test(file_text);
       /// @todo: A better approach is to allocate once and reuse.

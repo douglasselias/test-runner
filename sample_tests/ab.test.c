@@ -2,7 +2,7 @@
 
 void test_some_test() {
   int array[] = {1, 2, 3};
-  // DSE_ASSERT(array[1] == 1, "Oh no %d", array[1]);
+  DSE_ASSERT(array[1] == 1, "Oh no %d", array[1]);
   DSE_ASSERT(array[1] == 2);
   DSE_ASSERT(array[2] == 3);
   // DSE_ASSERT(array[0] == 3);

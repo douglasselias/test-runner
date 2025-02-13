@@ -12,13 +12,13 @@ rmdir /S /Q .\build
 mkdir build
 pushd .\build
 
-cl /nologo /diagnostics:caret /WX /W4 /wd4189 /wd4996 /wd4100 /wd4244 ..\embed.c
+set ignored_flags=/wd4189 /wd4996 /wd4100 /wd4244
+cl /nologo /diagnostics:caret /WX /W4 %ignored_flags%  ..\embed.c
 
-embed.exe
+embed
 
-@REM cl /nologo /diagnostics:caret /WX /W4 /wd4189 /wd4996 /wd4100 /wd4244 ..\main.c
-cl /nologo /Gw /GL /O2 ..\main.c /link /out:test_runner.exe
+cl /nologo /diagnostics:caret /WX /W4 %ignored_flags% /Gw /GL /O2 ..\main.c /link /out:test_runner.exe
 
-test_runner.exe
+test_runner
 
 popd
