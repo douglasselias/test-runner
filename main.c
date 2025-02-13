@@ -17,7 +17,6 @@ char* read_entire_file(const char* path) {
   /// @todo: I could use a struct with path and size. I only need to confirm if by reading the file system on Linux I can get the file size. Then I could remove these three lines.
   fseek(file, 0, SEEK_END);
   size_t size = ftell(file);
-  // printf("SIZE: %zd\n", size);
   fseek(file, 0, SEEK_SET);
 
   char* string = calloc(sizeof(char), size + 1);

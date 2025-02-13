@@ -68,12 +68,6 @@ void dse_run_threads() {
     dse_tests_per_thread = dse_functions_insert_index;
   }
 
-  // puts("");
-  // printf("Running %lld test function(s) on %lld thread(s)\n", dse_functions_insert_index, dse_available_threads);
-  // printf("Tests per thread:  %lld\n", dse_tests_per_thread);
-  // printf("Remaining tests:   %lld\n", dse_remaining_tests);
-  // puts("");
-
   dse_thread_id* threads_array = calloc(sizeof(dse_thread_id), dse_available_threads);
   /// @todo: Maybe use two for loops, one to create the threads and the other to run the threads.
   dse_u64 start_index = 0;
