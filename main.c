@@ -35,8 +35,18 @@ void extract_name_of_test(char* text) {
   char* line = strtok(text, "\n");
 
   while(line != NULL) {
-    /// @todo: Not a robust way to detect commented lines.
-    /// Does not catch multiline comments!
+    /// @note: This wont catch all edge cases. For example: void test_proc() { /* this comment will make the test runner skip this test */
+    bool is_multi_line_comment = __has_substring(line, "/*");
+    if(is_multi_line_comment) {
+      while(true) {
+        line = strtok(NULL, "\n");
+        if(__has_substring(line, "*/")) {
+          line = strtok(NULL, "\n");
+          break;
+        }
+      }
+    }
+
     bool is_not_a_single_commented_line = !__has_substring(line, "//");
     // bool is_not_a_skip_assertion = !__has_substring(line, "@skip");
     bool is_a_test = __has_substring(line, "void")

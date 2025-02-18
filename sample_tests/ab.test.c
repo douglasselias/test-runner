@@ -8,11 +8,13 @@ void test_some_test() {
   // assertion(array[0] == 3);
 }
 
-// void multiply_test_1() {
-//   int result = multiply(4, 3);
-//   result = 10;
-//   assertion(result == 7);
-// }
+/*
+void multiply_test_1() {
+  int result = multiply(4, 3);
+  result = 10;
+  assertion(result == 7);
+}
+*/
 
 // void multiply_test_2() {
 //   int result = multiply(4, 3);
